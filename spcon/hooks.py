@@ -30,7 +30,7 @@ app_license = "mit"
 app_include_js = [
     "/assets/spcon/js/hide_item_name.js",
     "/assets/spcon/js/hide_item_name_doctype.js",
-    "/assets/spcon/js/custom_navbar.js"
+        
     # "/assets/spcon/js/stock_ledger_precision.js"
 ] 
 
