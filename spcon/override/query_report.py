@@ -1,6 +1,10 @@
+import inspect
 import json
+from contextlib import contextmanager
 
 import frappe
+import frappe.query_builder.utils
+from frappe.database.query import Engine
 from frappe.desk.query_report import _run as original_run, get_report_doc
 
 from spcon.permissions.permissions import get_sales_person_customer_names
@@ -30,16 +34,17 @@ def run(
 		get_report_doc(report_name)
 		run_as_user = "Administrator"
 
-	result = original_run(
-		report_name=report_name,
-		filters=filters,
-		user=run_as_user,
-		ignore_prepared_report=ignore_prepared_report,
-		custom_columns=custom_columns,
-		is_tree=is_tree,
-		parent_field=parent_field,
-		are_default_filters=are_default_filters,
-	)
+	with ignore_unsupported_get_query_permissions():
+		result = original_run(
+			report_name=report_name,
+			filters=filters,
+			user=run_as_user,
+			ignore_prepared_report=ignore_prepared_report,
+			custom_columns=custom_columns,
+			is_tree=is_tree,
+			parent_field=parent_field,
+			are_default_filters=are_default_filters,
+		)
 
 	if report_name in RESTRICTED_RESULT_REPORTS:
 		filter_report_result_by_customer(result)
@@ -55,6 +60,33 @@ def parse_filters(filters):
 		return frappe._dict(json.loads(filters or "{}"))
 
 	return frappe._dict(filters or {})
+
+
+@contextmanager
+def ignore_unsupported_get_query_permissions():
+	if supports_get_query_permissions():
+		yield
+		return
+
+	original_frappe_get_query = frappe.get_query
+	original_utils_get_query = frappe.query_builder.utils.get_query
+
+	def get_query(*args, **kwargs):
+		kwargs.pop("ignore_permissions", None)
+		return original_frappe_get_query(*args, **kwargs)
+
+	frappe.get_query = get_query
+	frappe.query_builder.utils.get_query = get_query
+
+	try:
+		yield
+	finally:
+		frappe.get_query = original_frappe_get_query
+		frappe.query_builder.utils.get_query = original_utils_get_query
+
+
+def supports_get_query_permissions():
+	return "ignore_permissions" in inspect.signature(Engine.get_query).parameters
 
 
 def filter_report_result_by_customer(result):
