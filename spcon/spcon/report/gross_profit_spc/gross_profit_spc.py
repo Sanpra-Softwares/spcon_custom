@@ -739,6 +739,9 @@ class GrossProfitGenerator:
 			).append(inv)
 
 	def skip_row(self, row):
+		if not self.filters.get("include_non_stock_items") and row.item_code in self.non_stock_items:
+			return True
+
 		if self.filters.get("group_by") != "Invoice":
 			if not row.get(scrub(self.filters.get("group_by", ""))):
 				return True
