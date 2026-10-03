@@ -17,7 +17,7 @@
    "field_name": "due_date",
    "idx": 0,
    "is_system_generated": 0,
-   "modified": "2026-08-31 11:40:48.058656",
+   "modified": "2026-09-10 22:35:19.470070",
    "modified_by": "Administrator",
    "module": null,
    "name": "Payment Schedule-due_date-allow_on_submit",

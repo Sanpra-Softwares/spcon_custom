@@ -91,6 +91,12 @@ frappe.query_reports["Gross Profit SPC"] = {
 			fieldtype: "Check",
 			default: 1,
 		},
+		{
+			fieldname: "include_non_stock_items",
+			label: __("Include Service / Non-Stock Items"),
+			fieldtype: "Check",
+			default: 0,
+		},
 	],
 	tree: true,
 	name_field: "parent",
