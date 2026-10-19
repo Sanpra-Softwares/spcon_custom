@@ -5,6 +5,8 @@ app_description = "spcon"
 app_email = "21pradipjadhav@gmail.com"
 app_license = "mit"
 
+after_migrate = ["spcon.stock_report_setup.ensure_workspace_links"]
+
 # Apps
 # ------------------
 
