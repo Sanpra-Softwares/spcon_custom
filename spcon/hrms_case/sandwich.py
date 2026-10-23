@@ -40,11 +40,30 @@ from frappe.utils import flt
 #                 frappe.set_value("Attendance", att["name"], "custom_late_mark_flag", 1)
 
 
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from frappe.utils import get_first_day, get_last_day, today, getdate
 
-LATE_IN_TIME = time(9, 30)
-EARLY_OUT_TIME = time(17, 30)
+def _get_shift_time_limits(shift):
+    if not shift:
+        return None
+
+    settings = frappe.get_value(
+        "Shift Type",
+        shift,
+        ["start_time", "end_time", "late_entry_grace_period", "early_exit_grace_period"],
+        as_dict=True,
+    )
+    if not settings or settings.start_time is None or settings.end_time is None:
+        return None
+
+    base_date = datetime.min.date()
+    late_in = datetime.combine(base_date, get_time(settings.start_time)) + timedelta(
+        minutes=flt(settings.late_entry_grace_period)
+    )
+    early_out = datetime.combine(base_date, get_time(settings.end_time)) - timedelta(
+        minutes=flt(settings.early_exit_grace_period)
+    )
+    return late_in.time(), early_out.time()
 
 
 def _get_working_hours(first_in, last_out):
@@ -94,6 +113,7 @@ def _get_late_days_upto(employee, month_start, att_date):
 
     late_days = []
     neglect_shift_cache = {}
+    shift_time_cache = {}
     for row in rows:
         day = getdate(row.day)
         if day.weekday() == 6:
@@ -114,14 +134,21 @@ def _get_late_days_upto(employee, month_start, att_date):
         if neglect_shift_cache.get(shift):
             continue
 
+        if shift not in shift_time_cache:
+            shift_time_cache[shift] = _get_shift_time_limits(shift)
+        limits = shift_time_cache[shift]
+        if limits is None:
+            continue
+        late_in_time, early_out_time = limits
+
         working_hours = _get_working_hours(row.first_in, row.last_out)
         if _is_actual_half_day(working_hours, shift):
             continue
 
         in_time = get_time(row.first_in) if row.first_in else None
         out_time = get_time(row.last_out) if row.last_out else None
-        late = in_time is not None and in_time > LATE_IN_TIME
-        early = out_time is not None and out_time < EARLY_OUT_TIME
+        late = in_time is not None and in_time > late_in_time
+        early = out_time is not None and out_time < early_out_time
         if late or early:
             late_days.append(day)
     return sorted(set(late_days))
