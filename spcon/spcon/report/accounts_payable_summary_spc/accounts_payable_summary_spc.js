@@ -20,14 +20,14 @@ frappe.query_reports["Accounts Payable Summary SPC"] = {
 			fieldname: "ageing_based_on",
 			label: __("Ageing Based On"),
 			fieldtype: "Select",
-			options: "Posting Date\nDue Date",
-			default: "Due Date",
+			options: "Posting Date",
+			default: "Posting Date",
 		},
 		{
 			fieldname: "range",
 			label: __("Ageing Range"),
 			fieldtype: "Data",
-			default: "30, 60, 90, 120",
+			default: "30, 60, 90, 120, 150, 180, 365, 730, 1095",
 		},
 		{
 			fieldname: "finance_book",
