@@ -12,6 +12,12 @@ from erpnext.accounts.utils import get_currency_precision, get_party_types_from_
 
 
 def execute(filters=None):
+	filters = frappe._dict(filters or {})
+	# Use the selected posting cutoff for ageing, including historical reports.
+	filters.age_as_on = "Report Date"
+	filters.ageing_based_on = "Posting Date"
+	if not filters.get("range"):
+		filters.range = "30, 60, 90, 120, 150, 180, 365, 730, 1095"
 	args = {
 		"account_type": "Receivable",  
 		"naming_by": ["Selling Settings", "cust_master_name"],

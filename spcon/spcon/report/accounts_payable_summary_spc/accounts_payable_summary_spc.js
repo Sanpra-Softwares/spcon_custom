@@ -121,5 +121,3 @@ function get_party_type_options() {
 		});
 	return options;
 }
-
-  
