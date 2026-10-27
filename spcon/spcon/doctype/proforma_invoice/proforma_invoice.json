@@ -173,6 +173,7 @@
   "inter_company_order_reference",
   "campaign",
   "party_account_currency",
+  "test",
   "connections_tab"
  ],
  "fields": [
@@ -1711,14 +1712,19 @@
    "fieldname": "destination",
    "fieldtype": "Data",
    "label": "Destination"
+  },
+  {
+   "fieldname": "test",
+   "fieldtype": "Data",
+   "label": "test"
   }
  ],
  "icon": "fa fa-file-text",
  "idx": 105,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-23 11:40:48.885104",
- "modified_by": "yogesh@sanpra.co.in",
+ "modified": "2026-10-27 14:18:40.820933",
+ "modified_by": "Administrator",
  "module": "spcon",
  "name": "Proforma Invoice",
  "naming_rule": "By \"Naming Series\" field",
@@ -1787,6 +1793,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "search_fields": "status,transaction_date,customer,customer_name, territory,order_type,company",
  "show_name_in_global_search": 1,
  "sort_field": "modified",
