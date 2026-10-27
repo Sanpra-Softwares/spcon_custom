@@ -277,7 +277,7 @@
    "no_copy": 1,
    "oldfieldname": "amended_from",
    "oldfieldtype": "Data",
-   "options": "Sales Order",
+   "options": "Proforma Invoice",
    "print_hide": 1,
    "read_only": 1,
    "width": "150px"
