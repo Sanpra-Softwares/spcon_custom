@@ -457,3 +457,11 @@ override_whitelisted_methods = {
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+
+# Custom selling transactions must pass the standard ERPNext pricing validator.
+before_request = [
+    "spcon.spcon.doctype.proforma_invoice.proforma_invoice.register_pricing_doctype"
+]
+before_job = [
+    "spcon.spcon.doctype.proforma_invoice.proforma_invoice.register_pricing_doctype"
+]
