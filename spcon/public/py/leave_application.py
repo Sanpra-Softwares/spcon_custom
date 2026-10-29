@@ -20,18 +20,19 @@ def set_leave_type_absent(doc,method):
 
 
 
-def validate_backdated_leave(doc, method=None):
-    # Skip for Leave Approvers
-    if "Leave Approver" in frappe.get_roles():
-        return
-
-    today = getdate(nowdate())
-    from_date = getdate(doc.from_date)
-
-    days_difference = (today - from_date).days
-
-    # Allow today, future dates, and only 1 day backdated
-    if days_difference > 1:
-        frappe.throw(
-            _("You can apply leave only for yesterday or a future date. Leave applications older than 1 day are not allowed.")
-        )
+# def validate_backdated_leave(doc, method=None):
+    # Backdated leave restriction disabled.
+    # # Skip for Leave Approvers
+    # if "Leave Approver" in frappe.get_roles():
+    #     return
+    #
+    # today = getdate(nowdate())
+    # from_date = getdate(doc.from_date)
+    #
+    # days_difference = (today - from_date).days
+    #
+    # # Allow today, future dates, and only 1 day backdated
+    # if days_difference > 1:
+    #     frappe.throw(
+    #         _("You can apply leave only for yesterday or a future date. Leave applications older than 1 day are not allowed.")
+    #     )

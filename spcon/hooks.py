@@ -338,9 +338,9 @@ doc_events = {
     "Journal Entry": {
         "before_save": "spcon.public.py.set_cost_center.set_cost_center_journal_entry"
     },
-    "Leave Application": {
-        "before_save": "spcon.public.py.leave_application.validate_backdated_leave"  
-    },
+    # "Leave Application": {
+    #     "before_save": "spcon.public.py.leave_application.validate_backdated_leave"  
+    # },
     "Item": {
         "before_save": "spcon.public.py.item.validate_item"
     },
