@@ -14,6 +14,7 @@ frappe.ui.form.on("Proforma Invoice", {
         frm.set_df_property("packed_items", "cannot_delete_rows", true);
     },
     onload(frm) {
+        frm.proforma_defaults_customer = frm.doc.customer || "";
         if (!frm.doc.transaction_date) {
             frm.set_value("transaction_date", frappe.datetime.get_today());
         }
@@ -77,7 +78,7 @@ erpnext.selling.ProformaInvoiceController = class ProformaInvoiceController exte
     async company() {
         super.company();
         await frappe.after_ajax();
-        return this.customer();
+        return this.fetch_customer_defaults(true);
     }
 
     async transaction_date() {
@@ -86,7 +87,14 @@ erpnext.selling.ProformaInvoiceController = class ProformaInvoiceController exte
         return this.update_proforma_taxes();
     }
 
-    async customer() {
+    customer() {
+        const customer = this.frm.doc.customer || "";
+        const changed = this.frm.proforma_defaults_customer !== customer;
+        this.frm.proforma_defaults_customer = customer;
+        return this.fetch_customer_defaults(!changed);
+    }
+
+    async fetch_customer_defaults(preserve_selected_addresses = true) {
         if (!this.frm.doc.customer) {
             this.defaults_request = (this.defaults_request || 0) + 1;
             return this.frm.set_value({taxes_and_charges: "", taxes: []});
@@ -96,9 +104,15 @@ erpnext.selling.ProformaInvoiceController = class ProformaInvoiceController exte
         const request = this.defaults_request = (this.defaults_request || 0) + 1;
         const {message} = await frappe.call({
             method: "spcon.spcon.doctype.proforma_invoice.proforma_invoice.get_proforma_defaults",
-            args: {doc: this.frm.doc},
+            args: {doc: this.frm.doc, preserve_selected_addresses},
         });
         if (request !== this.defaults_request || context !== this.context_key() || !message) return;
+        // Defaults may initialise an empty address, but must not replace a selection
+        // when refreshing details for the same customer.
+        if (preserve_selected_addresses && this.frm.doc.shipping_address_name) {
+            delete message.shipping_address_name;
+            delete message.shipping_address;
+        }
         this.frm.updating_party_details = true;
         try {
             await this.frm.set_value(message);
@@ -137,8 +151,23 @@ erpnext.selling.ProformaInvoiceController = class ProformaInvoiceController exte
     }
 
     shipping_address_name() {
-        erpnext.utils.get_address_display(this.frm, "shipping_address_name", "shipping_address");
-        return this.update_proforma_taxes();
+        return Promise.all([this.update_shipping_address_display(), this.update_proforma_taxes()]);
+    }
+
+    async update_shipping_address_display() {
+        const frm = this.frm;
+        const doc = frm.doc;
+        const address = doc.shipping_address_name;
+        const request = this.shipping_address_request = (this.shipping_address_request || 0) + 1;
+        if (frm.updating_party_details) return;
+        if (!address) return frm.set_value("shipping_address", "");
+        const {message} = await frappe.call({
+            method: "frappe.contacts.doctype.address.address.get_address_display",
+            args: {address_dict: address},
+        });
+        if (request !== this.shipping_address_request || frm.doc !== doc ||
+            doc.shipping_address_name !== address) return;
+        return frm.set_value("shipping_address", message || "");
     }
 
     company_address() {

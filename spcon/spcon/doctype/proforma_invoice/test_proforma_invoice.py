@@ -39,6 +39,29 @@ class TestProformaInvoice(unittest.TestCase):
         self.assertNotIn("unsupported_field", result)
         self.assertIn("taxes", result)
 
+    def test_company_defaults_preserve_selected_addresses(self):
+        with patch.object(controller.ProformaInvoice, "check_permission"), patch.object(
+            controller, "_get_party_details", return_value={}
+        ) as get_details:
+            controller.get_proforma_defaults(self.doc.as_dict(), preserve_selected_addresses=True)
+        self.assertEqual(get_details.call_args.kwargs["shipping_address"], self.doc.shipping_address_name)
+        self.assertEqual(get_details.call_args.kwargs["party_address"], self.doc.customer_address)
+
+    def test_customer_defaults_still_fetch_new_customer_addresses(self):
+        with patch.object(controller.ProformaInvoice, "check_permission"), patch.object(
+            controller, "_get_party_details", return_value={}
+        ) as get_details:
+            controller.get_proforma_defaults(self.doc.as_dict(), preserve_selected_addresses=False)
+        self.assertIsNone(get_details.call_args.kwargs["shipping_address"])
+        self.assertIsNone(get_details.call_args.kwargs["party_address"])
+
+    def test_defaults_preserve_selected_addresses_without_explicit_flag(self):
+        with patch.object(controller.ProformaInvoice, "check_permission"), patch.object(
+            controller, "_get_party_details", return_value={}
+        ) as get_details:
+            controller.get_proforma_defaults(self.doc.as_dict())
+        self.assertEqual(get_details.call_args.kwargs["shipping_address"], self.doc.shipping_address_name)
+
     def test_defaults_endpoint_rejects_other_doctypes(self):
         with self.assertRaises(frappe.PermissionError):
             controller.get_proforma_defaults({"doctype": "Sales Order"})
