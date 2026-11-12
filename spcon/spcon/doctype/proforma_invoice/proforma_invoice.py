@@ -83,9 +83,9 @@ class ProformaInvoice(SellingController):
         )
 
     @frappe.whitelist()
-    def get_customer_details(self):
+    def get_customer_details(self, use_selected_addresses=True):
         self.check_permission("read")
-        return self.get_customer_defaults(use_selected_addresses=False)
+        return self.get_customer_defaults(use_selected_addresses=cint(use_selected_addresses))
 
     @frappe.whitelist()
     def get_tax_details(self, use_tax_category=False):
@@ -204,7 +204,7 @@ def make_sales_order(source_name, target_doc=None):
 
 
 @frappe.whitelist()
-def get_proforma_defaults(doc, taxes_only=False, use_tax_category=False):
+def get_proforma_defaults(doc, taxes_only=False, use_tax_category=False, preserve_selected_addresses=True):
     """Return defaults without syncing an old request's document over newer edits."""
     values = frappe.parse_json(doc)
     if not isinstance(values, dict) or values.get("doctype") != "Proforma Invoice":
@@ -216,7 +216,7 @@ def get_proforma_defaults(doc, taxes_only=False, use_tax_category=False):
         frappe.get_doc("Proforma Invoice", invoice.name).check_permission("read")
     if cint(taxes_only):
         return invoice.get_tax_details(use_tax_category=use_tax_category)
-    return invoice.get_customer_details()
+    return invoice.get_customer_details(use_selected_addresses=preserve_selected_addresses)
 
 
 @frappe.whitelist()
